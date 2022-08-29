@@ -2,6 +2,29 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios'
 
 const DisplayCountries = (props) => {
+
+  const viewSingleCountry = (country) => {
+    console.log('pressed', country)
+    props.setSingleCountry(country)
+  }
+
+  if (props.singleCountry) {
+    return (
+      <div>
+        <h1>{props.singleCountry.name}</h1>
+        <p>capital {props.singleCountry.capital} <br/>
+        population {props.singleCountry.population} </p>
+        <h3>languages</h3>
+        <ul>
+          {props.singleCountry.languages.map(lang => 
+            <li>{lang.name}</li>
+            )}
+        </ul>
+        <img src={props.singleCountry.flag} alt="flag" width="128" />
+      </div>
+    )
+  }
+
   if (props.countriesToShow.length === 1) {
     return (
       <div>
@@ -29,24 +52,30 @@ const DisplayCountries = (props) => {
 
   return (
     <div>
-      {props.countriesToShow.map(country =>
-      <p>{country.name}</p>
+      {props.countriesToShow.map(country => {
+        return (
+          <div>
+            {country.name}<button onClick={() => viewSingleCountry(country)}>view</button>
+          </div>
+        )
+      }
       )}
     </div>
     )
 }
-
 
 const App = () => {
 
   const [ countries, setCountries ] = useState([])
   const [ newFilter, setNewFilter ] = useState('')
   const [ showCountries, setShowAll ] = useState(true)
+  const [ singleCountry, setSingleCountry ] = useState(null)
+  //const [ countriesToShow, setCountriesToShow ] = useState()
 
   useEffect(() => { 
     console.log('effect')
     axios
-      .get('https://restcountries.eu/rest/v2/all')
+      .get('https://restcountries.com/v2/all')
       .then(response => {
       console.log('promise fulfilled')
       setCountries(response.data)
@@ -56,6 +85,7 @@ const App = () => {
 
   const handleFilter = (event) => {
     setNewFilter(event.target.value)
+    setSingleCountry(null)
     console.log('new filter', newFilter)
     if (setNewFilter === '') {
       setShowAll(true)
@@ -63,6 +93,8 @@ const App = () => {
       setShowAll(false)
     }
   }
+
+  console.log('single country', singleCountry)
 
   const countriesToShow = showCountries
     ? countries
@@ -74,7 +106,7 @@ const App = () => {
       <input value={newFilter}
       onChange={handleFilter}
       />
-      <DisplayCountries countriesToShow={countriesToShow} />
+      <DisplayCountries countriesToShow={countriesToShow} singleCountry={singleCountry} setSingleCountry={setSingleCountry} />
     </div>
   )
 }
