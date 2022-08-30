@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import FilterForm from './components/FilterForm'
 import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
-import noteService from './services/persons'
+import personService from './services/persons'
 
 const Confirmation = ({message}) => {
   const confirmationStyle = {
@@ -42,7 +42,7 @@ const App = () => {
 
   useEffect(() => {
     console.log('effect')
-    noteService
+    personService
       .getAll()
       .then(initialPersons => {
         setPersons(initialPersons)
@@ -60,12 +60,31 @@ const App = () => {
     }
 
     if (persons.some(e => e.name === newName)) {
-      window.alert(`${newName} is already added to the phonebook`)
+      window.confirm(`${newName} is already added to the phonebook, replace the old number with a new one?`)
+      const person = persons.find(p => p.name === newName)
+      const updatedPerson = { ...person, number: newNumber}
+
+      personService
+        .update(person.id, updatedPerson)
+        .then(response => (
+          setPersons(persons.map(person => person.name !== updatedPerson.name ? person : response.data))
+        ))
+
+        setConfirmationMessage(
+          `Updated ${personObject.name}` 
+        )
+        setTimeout(() => {
+          setConfirmationMessage(null)
+        }, 2000)
+  
+        setNewName('')
+        setNewNumber('')
+
     } else {
       setPersons(persons.concat(personObject))
       console.log('henkilö lisätty listaan')
 
-      noteService
+      personService
         .create(personObject)
         .then(returnedPerson => {
           setPersons(persons.concat(returnedPerson))
@@ -85,7 +104,7 @@ const App = () => {
 
   const deletePerson = (id, name) => {
     if (window.confirm(`Do you really want to delete ${name}?`)) {
-      noteService
+      personService
       .deletePerson(id)
       setPersons(persons.filter(p => p.id !== id))
       console.log('delete person from function', id)
