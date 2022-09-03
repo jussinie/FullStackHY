@@ -1,6 +1,46 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios'
 
+const SingleCountry = ({ singleCountry }) => {
+
+  const [ weatherData, setWeatherData ] = useState(null)
+
+  const lat = singleCountry.latlng[0]
+  const lng = singleCountry.latlng[1]
+  const api_key = process.env.REACT_APP_API_KEY
+
+  useEffect(() => { 
+    axios
+      .get(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&exclude=hourly,daily&appid=${api_key}&units=metric`)
+      .then(response => {
+      console.log('weather promise fulfilled')
+      setWeatherData(response.data)
+      })
+  }, [lat, lng, api_key])
+
+  const url = `http://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png`
+
+  return (
+      <div>
+        <h1>{singleCountry.name}</h1>
+        <p>capital {singleCountry.capital} <br/>
+        population {singleCountry.population} </p>
+        <h3>languages</h3>
+        <ul>
+          {singleCountry.languages.map(lang => 
+            <li>{lang.name}</li>
+            )}
+        </ul>
+        <img src={singleCountry.flag} alt="flag" width="128" />
+        <h3>Weather in {singleCountry.capital}</h3>
+        <p>temperature {weatherData.main.temp}</p>
+        <img src={url} alt="icon"></img>
+        <p>wind {weatherData.wind.speed}</p>
+      </div>
+    )
+} 
+
+
 const DisplayCountries = (props) => {
 
   const viewSingleCountry = (country) => {
@@ -10,35 +50,17 @@ const DisplayCountries = (props) => {
 
   if (props.singleCountry) {
     return (
-      <div>
-        <h1>{props.singleCountry.name}</h1>
-        <p>capital {props.singleCountry.capital} <br/>
-        population {props.singleCountry.population} </p>
-        <h3>languages</h3>
-        <ul>
-          {props.singleCountry.languages.map(lang => 
-            <li>{lang.name}</li>
-            )}
-        </ul>
-        <img src={props.singleCountry.flag} alt="flag" width="128" />
-      </div>
+      <>
+        <SingleCountry singleCountry={props.singleCountry} />
+      </>
     )
   }
 
   if (props.countriesToShow.length === 1) {
     return (
-      <div>
-        <h1>{props.countriesToShow[0].name}</h1>
-        <p>capital {props.countriesToShow[0].capital} <br/>
-        population {props.countriesToShow[0].population} </p>
-        <h3>languages</h3>
-        <ul>
-          {props.countriesToShow[0].languages.map(lang => 
-            <li>{lang.name}</li>
-            )}
-        </ul>
-        <img src={props.countriesToShow[0].flag} alt="flag" width="128" />
-      </div>
+      <>
+        <SingleCountry singleCountry={props.countriesToShow[0]}/>
+      </>
     )
   }
 
@@ -106,7 +128,11 @@ const App = () => {
       <input value={newFilter}
       onChange={handleFilter}
       />
-      <DisplayCountries countriesToShow={countriesToShow} singleCountry={singleCountry} setSingleCountry={setSingleCountry} />
+      <DisplayCountries 
+        countriesToShow={countriesToShow} 
+        singleCountry={singleCountry} 
+        setSingleCountry={setSingleCountry} 
+      />
     </div>
   )
 }
